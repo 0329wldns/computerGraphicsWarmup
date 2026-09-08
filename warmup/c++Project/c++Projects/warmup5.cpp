@@ -21,8 +21,9 @@ struct Rect
 	int width{};
 	int height{};
 
-	void move(const int&, const int&);
+	void move(const int&, const int&);		// int, char, bool 같은 원시 데이터 타입(Primitive Type)은 참조 보다 복사가 빠름
 	void scale(const int&, const int&);
+	bool contains(int, int) const;
 };
 
 Rect rect1{};
@@ -32,7 +33,6 @@ Rect rect2{};
 void initGame();
 void drawBoard();
 void processCommand(char cmd);
-bool isInside(const Rect& r, int c, int row);
 
 // --- Main 함수 ---
 int main()
@@ -53,7 +53,7 @@ int main()
 
 // --- 함수의 정의부 (Definition) ---
 
-// 게임 초기화 및 좌표 입력 (한국어 가이드 반영)
+// 게임 초기화 및 좌표 입력
 void initGame()
 {
 	system("cls");
@@ -94,34 +94,34 @@ void drawBoard()
 	{
 		for (int c{}; c < boardSize; ++c)
 		{
-			bool hit1{ isInside(rect1, c, r) };
-			bool hit2{ isInside(rect2, c, r) };
+			bool hit1{ rect1.contains(c, r) };
+			bool hit2{ rect2.contains(c, r) };
 
-			// 요구사항: SetConsoleTextAttribute 직접 사용
+			// 요구사항: SetConsoleTextAttribute 직접 사용 <- 너무 긴 함수는 짧은 Wrapper 함수로 묶어주는 것이 유리함(가독성 및 유지보수)
 			if (hit1 && hit2)
 			{
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12); // 빨간색 (충돌)
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);	// 빨간색 (충돌)
 				cout << "# ";
 			}
 			else if (hit1)
 			{
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 9);  // 파란색 (도형 1)
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE);	// 파란색 (도형 1)
 				cout << "O ";
 			}
 			else if (hit2)
 			{
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10); // 초록색 (도형 2)
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN);	// 초록색 (도형 2)
 				cout << "X ";
 			}
 			else
 			{
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);  // 기본색 (빈 공간)
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);		// 기본색 (빈 공간)
 				cout << "0 ";
 			}
 		}
 		cout << "\n";
 	}
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); // 색상 원상복구
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);			// 색상 원상복구
 
 	// 요구사항: 한 줄 코드 옆에 붙이기 & 면적 개별 토글 출력
 	if (showArea1) cout << "\n[도형 1 면적] " << rect1.width << " x " << rect1.height << " = " << (rect1.width * rect1.height);
@@ -197,11 +197,11 @@ void Rect::scale(const int& dw, const int& dh)
 	if (height > boardSize) height = boardSize;
 }
 
-// 특정 좌표 (c, row)가 사각형 내부에 속하는지(Wrap 포함) 체크하는 논리 함수
-bool isInside(const Rect& r, int c, int row)
+// 특정 좌표 (col, row)가 사각형 내부에 속하는지(Wrap 포함) 체크하는 논리 함수
+bool Rect::contains(int col, int row) const
 {
-	int dx{ (c - r.x % boardSize + boardSize) % boardSize };
-	int dy{ (row - r.y % boardSize + boardSize) % boardSize };
+	int dx{ (col - x % boardSize + boardSize) % boardSize };
+	int dy{ (row - y % boardSize + boardSize) % boardSize };
 
-	return (dx < r.width && dy < r.height);
+	return (dx < width && dy < height);
 }
