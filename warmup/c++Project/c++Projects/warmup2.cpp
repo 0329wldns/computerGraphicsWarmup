@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <vector>
 
 #include <windows.h>
@@ -10,6 +11,7 @@ using namespace std;
 
 char wordCriterion{ ' ' };
 bool keyState[9]{};
+string inputWord;
 
 // 문장들을 화면에 출력
 void showStrings(const vector<string>&);
@@ -37,6 +39,9 @@ void findNum(vector<string>&);
 
 // j : 문장의 순서 바꾸기
 void replaceLine(vector<string>&);
+
+// 대소문자 구별없이 문자열 비교
+bool compareIgnoreCase(const string&, const string&);
 
 int main()
 {
@@ -70,7 +75,7 @@ int main()
 	// 명령어 입력 루프
 	while (true)
 	{
-		cout << "명령어 입력 (q: 종료)" << endl;
+		cout << "명령어 입력 a ~ j, q: 종료" << endl;
 
 		if (_kbhit)
 		{
@@ -108,6 +113,14 @@ int main()
 					key = 0;
 				}
 				break;
+			case 'i':
+				if (!keyState[8])
+				{
+					cout << "찾을 단어 입력: ";
+					cin >> inputWord;
+				}
+				else inputWord.clear();
+				break;
 			case 'j':
 				replaceLine(fileContents);
 				break;
@@ -120,14 +133,10 @@ int main()
 			if (key >= 'a' && key <= 'i') keyState[key - 'a'] = !keyState[key - 'a'];
 
 			system("cls");
-			if (keyState[0]) cout << endl << "a: 대소문자 전환 됨";
-			if (keyState[5]) cout << "\t\t\tf: 단어 거꾸로 출력됨";
-			if (keyState[1]) cout << endl << "b: 각 줄의 단어개수 출력됨";
-			if (keyState[6]) cout << "\t\tg: 특정 문자 변환됨";
-			if (keyState[2]) cout << endl << "c: 대문자로 시작하는 단어 강조됨";
-			if (keyState[7]) cout << "\th: 숫자 뒤 문장 넘겨짐";
-			if (keyState[3]) cout << endl << "d: 각 문장 거꾸로 출력됨";
-			if (keyState[8]) cout << "\t\ti: 입력받은 단어 강조됨";
+			if (keyState[0]) cout <<		"a: 대소문자 전환 됨";					if (keyState[5]) cout << "\t\t\tf: 단어 거꾸로 출력됨";
+			if (keyState[1]) cout << endl << "b: 각 줄의 단어개수 출력됨";			if (keyState[6]) cout << "\t\tg: 특정 문자 변환됨";
+			if (keyState[2]) cout << endl << "c: 대문자로 시작하는 단어 강조됨";	if (keyState[7]) cout << "\th: 숫자 뒤 문장 넘겨짐";
+			if (keyState[3]) cout << endl << "d: 각 문장 거꾸로 출력됨";			if (keyState[8]) cout << "\t\ti: 입력받은 단어 강조됨";
 			if (keyState[4]) cout << endl << "e: 공백 -> * 로 전환됨";
 			cout << endl;
 
@@ -155,44 +164,82 @@ void showStrings(const vector<string>& lines)
 					{
 						if (isupper(word[0]))
 						{
-							SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_INTENSITY);
+							SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
 							cout << word;
 							SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 							cout << wordCriterion;
 							++uppercaseWordCount;
 						}
-						else
-						{
-							cout << word << wordCriterion;
-						}
+						else cout << word << wordCriterion;
 						word.clear();
 					}
 				}
-				else
-				{
-					word += ch;
-				}
+				else word += ch;
 			}
 			if (!word.empty())
 			{
 				if (isupper(word[0]))
 				{
-					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_INTENSITY);
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
 					cout << word;
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 					cout << wordCriterion;
 					++uppercaseWordCount;
 				}
-				else
-				{
-					cout << word << wordCriterion;
-				}
+				else cout << word << wordCriterion;
 				word.clear();
 			}
 			if (keyState[1]) cout << " 단어 수: " << countWords(line);
 			cout << endl;
 		}
 		cout << "대문자로 시작하는 단어의 개수: " << uppercaseWordCount << endl;
+	}
+	else if (keyState[8])
+	{
+		vector<vector<string>> words;
+
+		// 문장을 단어 단위로 쪼갬
+		for (const auto& line : lines)
+		{
+			vector<string> tempLine;
+			string word;
+			for (const auto& ch : line)
+			{
+				if (ch == wordCriterion)
+				{
+					if (!word.empty())
+					{
+						tempLine.push_back(word);
+						word.clear();
+					}
+				}
+				else word += ch;
+			}
+			if (!word.empty())
+			{
+				tempLine.push_back(word);
+				word.clear();
+			}
+			words.push_back(tempLine);
+		}
+
+		int wordCnt{};
+		for (const auto& line : words)
+		{
+			for (const auto& word : line)
+			{
+				if (!_stricmp(word.c_str(), inputWord.c_str()))
+				{
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
+					++wordCnt;
+				}
+				cout << word << wordCriterion;
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+			}
+			if (keyState[1]) cout << " 단어 수: " << line.size();
+			cout << endl;
+		}
+		cout << "일치하는 단어 수: " << wordCnt << endl;
 	}
 	else
 	{
@@ -339,4 +386,10 @@ void replaceLine(vector<string>& lines)
 	string temp{ lines[0] };
 	for (int i = 0; i < lines.size() - 1; ++i) lines[i] = lines[i + 1];
 	lines[lines.size() - 1] = temp;
+}
+
+bool compareIgnoreCase(const string& str1, const string& str2)
+{
+	
+	return false;
 }
