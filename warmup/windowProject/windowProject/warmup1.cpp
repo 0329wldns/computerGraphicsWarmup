@@ -213,10 +213,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 array<array<int, gRow>, gCol> genRandMatrix(const int row, const int col)
 {
 	array<array<int, gRow>, gCol> matrix{};
-	for (int i = 0; i < row; ++i) {
-		for (int j = 0; j < col; ++j) {
-			matrix[i][j] = num(gen);
-		}
+	for (int i = 0; i < row; ++i) 
+	{
+		for (int j = 0; j < col; ++j) matrix[i][j] = num(gen);
 	}
 	return matrix;
 }
@@ -225,8 +224,10 @@ void printMatrix(HDC hDC, const int startX, const int startY, const array<array<
 {
 	int currentY = startY;
 
-	for (int r = 0; r < gCol; ++r) {
-		for (int c = 0; c < gRow; ++c) {
+	for (int r = 0; r < gCol; ++r) 
+	{
+		for (int c = 0; c < gRow; ++c) 
+		{
 			wstring valStr = to_wstring(matrix[r][c]);
 
 			int currentX = startX + (c * gColWidth);
@@ -239,10 +240,9 @@ void printMatrix(HDC hDC, const int startX, const int startY, const array<array<
 array<array<int, gRow>, gCol> addMatrix(const array<array<int, gRow>, gCol>& matrix1, const array<array<int, gRow>, gCol>& matrix2)
 {
 	array<array<int, gRow>, gCol> result{};
-	for (int i = 0; i < gRow; ++i) {
-		for (int j = 0; j < gCol; ++j) {
-			result[i][j] = matrix1[i][j] + matrix2[i][j];
-		}
+	for (int i = 0; i < gRow; ++i) 
+	{
+		for (int j = 0; j < gCol; ++j) result[i][j] = matrix1[i][j] + matrix2[i][j];
 	}
 	return result;
 }
@@ -250,10 +250,9 @@ array<array<int, gRow>, gCol> addMatrix(const array<array<int, gRow>, gCol>& mat
 array<array<int, gRow>, gCol> subMatrix(const array<array<int, gRow>, gCol>& matrix1, const array<array<int, gRow>, gCol>& matrix2)
 {
 	array<array<int, gRow>, gCol> result{};
-	for (int i = 0; i < gRow; ++i) {
-		for (int j = 0; j < gCol; ++j) {
-			result[i][j] = matrix1[i][j] - matrix2[i][j];
-		}
+	for (int i = 0; i < gRow; ++i) 
+	{
+		for (int j = 0; j < gCol; ++j) result[i][j] = matrix1[i][j] - matrix2[i][j];
 	}
 
 	return result;
@@ -262,35 +261,39 @@ array<array<int, gRow>, gCol> subMatrix(const array<array<int, gRow>, gCol>& mat
 array<array<int, gRow>, gCol> mulMatrix(const array<array<int, gRow>, gCol>& matrix1, const array<array<int, gRow>, gCol>& matrix2)
 {
 	array<array<int, gRow>, gCol> result{};
-	for (int i = 0; i < gRow; ++i) {
-		for (int j = 0; j < gCol; ++j) {
-			for (int k = 0; k < gCol; ++k) {
-				result[i][j] += matrix1[i][k] * matrix2[k][j];
-			}
+	for (int i = 0; i < gRow; ++i) 
+	{
+		for (int j = 0; j < gCol; ++j) 
+		{
+			for (int k = 0; k < gCol; ++k) result[i][j] += matrix1[i][k] * matrix2[k][j];
 		}
 	}
 	return result;
 }
 
-int get3x3Determinant(const array<array<int, 3>, 3>& matrix) {
+int get3x3Determinant(const array<array<int, 3>, 3>& matrix) 
+{
 	return matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1])
 		- matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0])
 		+ matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
 }
 
-int get4x4Determinant(const array<array<int, 4>, 4>& matrix) {
+int get4x4Determinant(const array<array<int, 4>, 4>& matrix) 
+{
 	int determinant{};
 	int sign{1};
 
 	// 첫 번째 행(matrix[0][i])을 기준으로 여인수 전개
-	for (int col = 0; col < 4; ++col) {
+	for (int col = 0; col < 4; ++col) 
+	{
 		array<array<int, 3>, 3> subMatrix{};
 
 		// 0번 행과 col번 열을 제외한 3x3 소행렬 추출
 		for (int r = 1; r < 4; ++r) 
 		{
 			int subCol{};
-			for (int c = 0; c < 4; ++c) {
+			for (int c = 0; c < 4; ++c) 
+			{
 				if (c == col) continue; // 선택된 열은 제외
 				subMatrix[r - 1][subCol++] = matrix[r][c];
 			}
@@ -307,10 +310,9 @@ int get4x4Determinant(const array<array<int, 4>, 4>& matrix) {
 array<array<int, gRow>, gCol> transMatrix(const array<array<int, gRow>, gCol>& matrix)
 {
 	array<array<int, gRow>, gCol> transposed{};
-	for (int i = 0; i < gRow; ++i) {
-		for (int j = 0; j < gCol; ++j) {
-			transposed[j][i] = matrix[i][j];
-		}
+	for (int i = 0; i < gRow; ++i) 
+	{
+		for (int j = 0; j < gCol; ++j) transposed[j][i] = matrix[i][j];
 	}
 	return transposed;
 }

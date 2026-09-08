@@ -25,7 +25,10 @@
     <ClCompile Include="warmup3.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="warmup4.cpp" />
+    <ClCompile Include="warmup4.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="warmup5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="data.txt" />
