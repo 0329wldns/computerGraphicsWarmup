@@ -102,6 +102,7 @@ int main()
 					for (int i = 0; i < 9; ++i) keyState[i] = false;
 					fileContents = copy;
 					key = 0;
+					inputWord.clear();
 				}
 				break;
 			case 'h':
@@ -111,6 +112,7 @@ int main()
 					for (int i = 0; i < 9; ++i) keyState[i] = false;
 					fileContents = copy;
 					key = 0;
+					inputWord.clear();
 				}
 				break;
 			case 'i':
@@ -150,106 +152,59 @@ int main()
 
 void showStrings(const vector<string>& lines)
 {
-	if (keyState[2])
-	{
-		int uppercaseWordCount{};
-		for (const auto& line : lines)
-		{
-			string word;
-			for (const auto& ch : line)
-			{
-				if (ch == wordCriterion)
-				{
-					if (!word.empty())
-					{
-						if (isupper(word[0]))
-						{
-							SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
-							cout << word;
-							SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-							cout << wordCriterion;
-							++uppercaseWordCount;
-						}
-						else cout << word << wordCriterion;
-						word.clear();
-					}
-				}
-				else word += ch;
-			}
-			if (!word.empty())
-			{
-				if (isupper(word[0]))
-				{
-					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
-					cout << word;
-					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-					cout << wordCriterion;
-					++uppercaseWordCount;
-				}
-				else cout << word << wordCriterion;
-				word.clear();
-			}
-			if (keyState[1]) cout << " 단어 수: " << countWords(line);
-			cout << endl;
-		}
-		cout << "대문자로 시작하는 단어의 개수: " << uppercaseWordCount << endl;
-	}
-	else if (keyState[8])
-	{
-		vector<vector<string>> words;
+	vector<vector<string>> words;
 
-		// 문장을 단어 단위로 쪼갬
-		for (const auto& line : lines)
-		{
-			vector<string> tempLine;
-			string word;
-			for (const auto& ch : line)
-			{
-				if (ch == wordCriterion)
-				{
-					if (!word.empty())
-					{
-						tempLine.push_back(word);
-						word.clear();
-					}
-				}
-				else word += ch;
-			}
-			if (!word.empty())
-			{
-				tempLine.push_back(word);
-				word.clear();
-			}
-			words.push_back(tempLine);
-		}
-
-		int wordCnt{};
-		for (const auto& line : words)
-		{
-			for (const auto& word : line)
-			{
-				if (!_stricmp(word.c_str(), inputWord.c_str()))
-				{
-					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
-					++wordCnt;
-				}
-				cout << word << wordCriterion;
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-			}
-			if (keyState[1]) cout << " 단어 수: " << line.size();
-			cout << endl;
-		}
-		cout << "일치하는 단어 수: " << wordCnt << endl;
-	}
-	else
+	// 문장을 단어 단위로 쪼갬
+	for (const auto& line : lines)
 	{
-		for (const auto& line : lines)
+		vector<string> tempLine;
+		string word;
+		for (const auto& ch : line)
 		{
-			cout << line;
-			if (keyState[1]) cout << " 단어 수: " << countWords(line);
-			cout << endl;
+			if (ch == wordCriterion)
+			{
+				if (!word.empty())
+				{
+					tempLine.push_back(word);
+					word.clear();
+				}
+			}
+			else word += ch;
 		}
+		if (!word.empty())
+		{
+			tempLine.push_back(word);
+			word.clear();
+		}
+		words.push_back(tempLine);
 	}
+
+	int sameWordCnt{};
+	int upperWordCnt{};
+	for (const auto& line : words)
+	{
+		for (const auto& word : line)
+		{
+			if (keyState[2] && isupper(word[0]))
+			{
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
+				++upperWordCnt;
+			}
+
+			if (keyState[8] && !_stricmp(word.c_str(), inputWord.c_str()))				// _stricmp : 두 문자열이 같으면 flase를 반환함
+			{
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN);
+				++sameWordCnt;
+			}
+			cout << word;
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+			cout << wordCriterion;
+		}
+		if (keyState[1]) cout << " 단어 수: " << line.size();
+		cout << endl;
+	}
+	if (keyState[2]) cout << "대문자로 시작하는 단어 수: " << upperWordCnt << endl;
+	if (keyState[8]) cout << "일치하는 단어 수: " << sameWordCnt << endl;
 }
 
 void convertCase(vector<string>& lines)
