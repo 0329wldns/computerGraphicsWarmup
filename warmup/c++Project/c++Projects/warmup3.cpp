@@ -1,123 +1,309 @@
 #include <iostream>
-#include <conio.h>
+#include <cmath>
+#include <iomanip>
+#include <string>
 
 using namespace std;
 
-const int gListSize{ 10 };
-
-// 3Ï∞®Ïõê Ï¢åÌëú Î≥ÄÏàò
-struct Vec3
-{
-	int x;
-	int y;
-	int z;
-
-	Vec3();
-	Vec3(int, int, int);
-
-	friend ostream& operator<<(ostream&, const Vec3&);
+// ¡° (x, y, z) µ•¿Ã≈Õ∏¶ ¿˙¿Â«œ¥¬ ±∏¡∂√º
+struct Point {
+    int x;
+    int y;
+    int z;
+    bool occupied; // µ•¿Ã≈Õ ¡∏¿Á ø©∫Œ
 };
 
-struct Element
-{
-	Vec3 data{};
-	bool isEmpty{ true };
-
-	Element& operator=(const Vec3&);
+// ¡§∑ƒ √‚∑¬øÎ ¿”Ω√ ±∏¡∂√º
+struct SortedPoint {
+    int x;
+    int y;
+    int z;
+    double dist;
 };
 
-// 3Ï∞®Ïõê Ï¢åÌëú Ï†ïÏ†Å Î¶¨Ïä§Ìä∏
-struct Vec3List
-{
-	Element vec3List[gListSize]{};
-	int top{};
-	int bottom{};
+// ¿¸ø™ ∫Øºˆ∑Œ ∞¸∏Æ«œ¥¬ 10∞≥¿« ¡° µ•¿Ã≈Õ π◊ √‚∑¬ ªÛ≈¬
+Point pointList[10];
+bool isSortedMode = false; // f ∏Ì∑…æÓ ≈‰±€ «√∑°±◊
 
-	Vec3List() = default;
-	Vec3List(initializer_list<Vec3>);
-
-	void printAll() const;
-	void inputTop(const Vec3&);
-	void deleteTop();
-	void inputBottom(const Vec3&);
-	void deleteBottom();
-};
-
-int main()
-{
-	Vec3List vec3List{ {}, {1, 2, 3} };
-
-	vec3List.printAll();
-
-	return 0;
+// √ ±‚»≠ «‘ºˆ
+void initList() {
+    for (int i = 0; i < 10; ++i) {
+        pointList[i].x = 0;
+        pointList[i].y = 0;
+        pointList[i].z = 0;
+        pointList[i].occupied = false;
+    }
 }
 
-// Vec3 Îß¥Î≤ÑÌï®Ïàò Ï†ïÏùò
-Vec3::Vec3()
-	: x(), y(), z()
-{
+// ø¯¡°¿∏∑Œ∫Œ≈Õ¿« ∞≈∏Æ ∞ËªÍ
+double getOriginDistance(const Point& p) {
+    return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
 }
 
-Vec3::Vec3(int _x, int _y, int _z)
-	: x(_x), y(_y), z(_z)
-{
+// µŒ ¡° ªÁ¿Ã¿« ∞≈∏Æ ∞ËªÍ
+double getPointDistance(const Point& p1, const Point& p2) {
+    int dx = p1.x - p2.x;
+    int dy = p1.y - p2.y;
+    int dz = p1.z - p2.z;
+    return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-ostream& operator<<(ostream& os, const Vec3& rhs)
-{
-	os << "(" << rhs.x << ", " << rhs.y << ", " << rhs.z << ")";	// (x, y, z)
-	return os;
+// ¿˙¿Âµ» ¡°¿« ∞≥ºˆ ºº±‚ (∏Ì∑…æÓ a ¡ˆø¯)
+int getPointCount() {
+    int count = 0;
+    for (int i = 0; i < 10; ++i) {
+        if (pointList[i].occupied) count++;
+    }
+    return count;
 }
 
-// Element Îß¥Î≤ÑÌï®Ïàò Ï†ïÏùò
-Element& Element::operator=(const Vec3& other)
-{
-	data.x = other.x;
-	data.y = other.y;
-	data.z = other.z;
+// ∏ÆΩ∫∆Æ ªÛ≈¬ √‚∑¬ «‘ºˆ
+void printList() {
+    cout << "\n===============================\n";
 
-	return *this;
+    // f ∏Ì∑…æÓ∞° »∞º∫»≠µ» ∞ÊøÏ (ø¯¡° ∞≈∏Æ ±‚¡ÿ ø¿∏ß¬˜º¯ √‚∑¬)
+    if (isSortedMode) {
+        SortedPoint sortedArray[10];
+        int count = 0;
+
+        // ¿˙¿Âµ» ¡° √ﬂ√‚ π◊ ø¯¡° ∞≈∏Æ ∞ËªÍ
+        for (int i = 0; i < 10; ++i) {
+            if (pointList[i].occupied) {
+                sortedArray[count].x = pointList[i].x;
+                sortedArray[count].y = pointList[i].y;
+                sortedArray[count].z = pointList[i].z;
+                sortedArray[count].dist = getOriginDistance(pointList[i]);
+                count++;
+            }
+        }
+
+        // πˆ∫Ì ¡§∑ƒ (∞≈∏Æ ø¿∏ß¬˜º¯)
+        for (int i = 0; i < count - 1; ++i) {
+            for (int j = 0; j < count - 1 - i; ++j) {
+                if (sortedArray[j].dist > sortedArray[j + 1].dist) {
+                    SortedPoint temp = sortedArray[j];
+                    sortedArray[j] = sortedArray[j + 1];
+                    sortedArray[j + 1] = temp;
+                }
+            }
+        }
+
+        // ¿Œµ¶Ω∫ 9π¯∫Œ≈Õ 0π¯±Ó¡ˆ √‚∑¬
+        for (int i = 9; i >= 0; --i) {
+            cout << i;
+            if (i < count) {
+                cout << " | " << sortedArray[i].x << sortedArray[i].y << sortedArray[i].z
+                    << "  (ø¯¡° ∞≈∏Æ: " << fixed << setprecision(2) << sortedArray[i].dist << ")";
+            }
+            cout << "\n";
+        }
+    }
+    // ¿œπ› √‚∑¬ ∏µÂ
+    else {
+        for (int i = 9; i >= 0; --i) {
+            cout << i;
+            if (pointList[i].occupied) {
+                cout << " | " << pointList[i].x << pointList[i].y << pointList[i].z;
+            }
+            cout << "\n";
+        }
+    }
+    cout << "===============================\n";
 }
 
-// Vec3List Îß¥Î≤ÑÌï®Ïàò Ï†ïÏùò
-Vec3List::Vec3List(initializer_list<Vec3> initList)
-{
-	int count{};
-	for (const auto& item : initList)
-	{
-		if (count >= gListSize) break;
-		vec3List[count].isEmpty = false;
-		vec3List[count++] = item;
-		top = count;
-	}
+// ∏ÆΩ∫∆Æ¿« ∏« ¿ßø° µ•¿Ã≈Õ √ﬂ∞° (+)
+void insertTop(int x, int y, int z) {
+    if (getPointCount() >= 10) {
+        cout << "[∞Ê∞Ì] ∏ÆΩ∫∆Æ∞° ∞°µÊ √°Ω¿¥œ¥Ÿ.\n";
+        return;
+    }
+
+    int maxIndex = -1;
+    for (int i = 9; i >= 0; --i) {
+        if (pointList[i].occupied) {
+            maxIndex = i;
+            break;
+        }
+    }
+
+    if (maxIndex == -1) {
+        pointList[0] = { x, y, z, true };
+    }
+    else if (maxIndex < 9) {
+        pointList[maxIndex + 1] = { x, y, z, true };
+    }
+    else {
+        // 9π¯ ƒ≠±Ó¡ˆ √°¥¬µ• ∫Û ƒ≠¿Ã ¿÷¥¬ ∞ÊøÏ 0π¯∫Œ≈Õ ∫Û ∞˜ ≈Ωªˆ
+        for (int i = 0; i < 9; ++i) {
+            if (!pointList[i].occupied) {
+                pointList[i] = { x, y, z, true };
+                break;
+            }
+        }
+    }
 }
 
-void Vec3List::printAll() const
-{
-	cout << "index\tdata" << endl;
-	for (int i = 1; i < gListSize + 1; ++i)
-	{
-		cout << gListSize - i << '\t';
-		if (!vec3List[gListSize - i].isEmpty) cout << vec3List[gListSize - i].data;
-		cout << endl;
-	}
-	cout << top << '\t' << bottom << endl;
+// ∏ÆΩ∫∆Æ¿« ∏« ¿ßø°º≠ µ•¿Ã≈Õ ªË¡¶ (-)
+void deleteTop() {
+    for (int i = 9; i >= 0; --i) {
+        if (pointList[i].occupied) {
+            pointList[i].occupied = false;
+            return;
+        }
+    }
+    cout << "[æÀ∏≤] ªË¡¶«“ µ•¿Ã≈Õ∞° æ¯Ω¿¥œ¥Ÿ.\n";
 }
 
-void Vec3List::inputTop(const Vec3& vec3)
-{
-
+// ∏ÆΩ∫∆Æ¿« ∏« æ∆∑°ø° µ•¿Ã≈Õ ¿‘∑¬ (e)
+void insertBottom(int x, int y, int z) {
+    // «— ƒ≠æø ¿ß∑Œ π–±‚
+    for (int i = 9; i > 0; --i) {
+        pointList[i] = pointList[i - 1];
+    }
+    pointList[0] = { x, y, z, true };
 }
 
-void Vec3List::deleteTop()
-{
+// ∏ÆΩ∫∆Æ¿« ∏« æ∆∑° µ•¿Ã≈Õ ªË¡¶ (d)
+void deleteBottom() {
+    if (pointList[0].occupied) {
+        pointList[0].occupied = false;
+    }
+    else {
+        for (int i = 0; i < 10; ++i) {
+            if (pointList[i].occupied) {
+                pointList[i].occupied = false;
+                break;
+            }
+        }
+    }
 }
 
-void Vec3List::inputBottom(const Vec3&)
-{
+// ¿ßƒ°∏¶ «— ƒ≠æø æ∆∑°∑Œ ¿Ãµø (b)
+void shiftDown() {
+    Point temp = pointList[0];
+    for (int i = 0; i < 9; ++i) {
+        pointList[i] = pointList[i + 1];
+    }
+    pointList[9] = temp;
 }
 
-void Vec3List::deleteBottom()
-{
+// µŒ ¡° ∞£¿« ∞≈∏Æ ¡∂«’ ∞ËªÍ π◊ √÷¿Â/√÷¥‹ √‚∑¬ (g)
+void calculatePairDistances() {
+    int total = getPointCount();
+    if (total < 2) {
+        cout << "[æÀ∏≤] ∞ËªÍ¿ª ¿ß«ÿ √÷º“ 2∞≥ ¿ÃªÛ¿« ¡°¿Ã « ø‰«’¥œ¥Ÿ.\n";
+        return;
+    }
+
+    int activeIndices[10];
+    int count = 0;
+    for (int i = 0; i < 10; ++i) {
+        if (pointList[i].occupied) {
+            activeIndices[count++] = i;
+        }
+    }
+
+    int minIdx1 = -1, minIdx2 = -1;
+    int maxIdx1 = -1, maxIdx2 = -1;
+    double minDist = 1e9;
+    double maxDist = -1.0;
+
+    for (int i = 0; i < count; ++i) {
+        for (int j = i + 1; j < count; ++j) {
+            int p1 = activeIndices[i];
+            int p2 = activeIndices[j];
+            double d = getPointDistance(pointList[p1], pointList[p2]);
+
+            if (d < minDist) {
+                minDist = d;
+                minIdx1 = p1;
+                minIdx2 = p2;
+            }
+            if (d > maxDist) {
+                maxDist = d;
+                maxIdx1 = p1;
+                maxIdx2 = p2;
+            }
+        }
+    }
+
+    cout << "\n[∞°¿Â ∞°±ÓøÓ µŒ ¡°]\n";
+    cout << "(" << pointList[minIdx1].x << ", " << pointList[minIdx1].y << ", " << pointList[minIdx1].z << ") øÕ "
+        << "(" << pointList[minIdx2].x << ", " << pointList[minIdx2].y << ", " << pointList[minIdx2].z << ")\n";
+    cout << "∞≈∏Æ: " << fixed << setprecision(2) << minDist << "\n\n";
+
+    cout << "[∞°¿Â ∏’ µŒ ¡°]\n";
+    cout << "(" << pointList[maxIdx1].x << ", " << pointList[maxIdx1].y << ", " << pointList[maxIdx1].z << ") øÕ "
+        << "(" << pointList[maxIdx2].x << ", " << pointList[maxIdx2].y << ", " << pointList[maxIdx2].z << ")\n";
+    cout << "∞≈∏Æ: " << fixed << setprecision(2) << maxDist << "\n";
 }
 
+int main() {
+    initList();
+    string cmdInput;
+
+    while (true) {
+        printList();
+        cout << "(∏Ì∑…æÓ ¿‘∑¬): ";
+        if (!(cin >> cmdInput)) break;
+
+        char cmd = cmdInput[0];
+
+        if (cmd == 'q') {
+            cout << "«¡∑Œ±◊∑•¿ª ¡æ∑·«’¥œ¥Ÿ.\n";
+            break;
+        }
+
+        if (cmd == '+') {
+            int x = 0, y = 0, z = 0;
+            if (cmdInput.length() >= 4) {
+                x = cmdInput[1] - '0';
+                y = cmdInput[2] - '0';
+                z = cmdInput[3] - '0';
+            }
+            else {
+                cin >> x >> y >> z;
+            }
+            insertTop(x, y, z);
+        }
+        else if (cmd == 'e') {
+            int x = 0, y = 0, z = 0;
+            if (cmdInput.length() >= 4) {
+                x = cmdInput[1] - '0';
+                y = cmdInput[2] - '0';
+                z = cmdInput[3] - '0';
+            }
+            else {
+                cin >> x >> y >> z;
+            }
+            insertBottom(x, y, z);
+        }
+        else if (cmd == '-') {
+            deleteTop();
+        }
+        else if (cmd == 'd') {
+            deleteBottom();
+        }
+        else if (cmd == 'a') {
+            cout << "\n[¿˙¿Âµ» ¡°¿« ∞≥ºˆ]: " << getPointCount() << "∞≥\n";
+        }
+        else if (cmd == 'b') {
+            shiftDown();
+        }
+        else if (cmd == 'c') {
+            initList();
+            cout << "\n[∏ÆΩ∫∆Æ∏¶ √ ±‚»≠«ﬂΩ¿¥œ¥Ÿ.]\n";
+        }
+        else if (cmd == 'f') {
+            isSortedMode = !isSortedMode; // ≈‰±€ µø¿€
+        }
+        else if (cmd == 'g') {
+            calculatePairDistances();
+        }
+        else {
+            cout << "[ø¿∑˘] ø√πŸ∏£¡ˆ æ ¿∫ ∏Ì∑…æÓ¿‘¥œ¥Ÿ.\n";
+        }
+    }
+
+    return 0;
+}
