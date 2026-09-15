@@ -53,6 +53,10 @@ int get4x4Determinant(const array<array<int, gRow>, gCol>&);
 // 전치행렬을 구하는 함수
 array<array<int, gRow>, gCol> transMatrix(const array<array<int, gRow>, gCol>&);
 
+array<array<int, gRow>, gCol> add1EachElements(const array<array<int, gRow>, gCol>&);
+
+array<array<int, gRow>, gCol> sub1EachElements(const array<array<int, gRow>, gCol>&);
+
 LRESULT CALLBACK WndProc(HWND nWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
@@ -147,6 +151,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			currentState = L"";
 			matrix1 = genRandMatrix(gRow, gCol);
 			matrix2 = genRandMatrix(gRow, gCol);
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case VK_OEM_PLUS:
+			currentState = L"";
+			matrix1 = add1EachElements(matrix1);
+			matrix2 = add1EachElements(matrix2);
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case VK_OEM_MINUS:
+			currentState = L"";
+			matrix1 = sub1EachElements(matrix1);
+			matrix2 = sub1EachElements(matrix2);
 			InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		case 'Q':
@@ -315,4 +331,28 @@ array<array<int, gRow>, gCol> transMatrix(const array<array<int, gRow>, gCol>& m
 		for (int j = 0; j < gCol; ++j) transposed[j][i] = matrix[i][j];
 	}
 	return transposed;
+}
+
+array<array<int, gRow>, gCol> add1EachElements(const array<array<int, gRow>, gCol>& matrix)
+{
+	array<array<int, gRow>, gCol> temp{};
+
+	for (int i = 0; i < gRow; ++i)
+	{
+		for (int j = 0; j < gCol; ++j) temp[i][j] = (matrix[i][j] + 1) % 10;
+	}
+
+	return temp;
+}
+
+array<array<int, gRow>, gCol> sub1EachElements(const array<array<int, gRow>, gCol>& matrix)
+{
+	array<array<int, gRow>, gCol> temp{};
+
+	for (int i = 0; i < gRow; ++i)
+	{
+		for (int j = 0; j < gCol; ++j) temp[i][j] = (matrix[i][j] + 9) % 10;
+	}
+
+	return temp;
 }
